@@ -12,6 +12,10 @@ init(_) ->
     ChildSpec = [#{
 		    id => game_events,
 		    start => {gen_event, start_link, [{local, game_events}]}
+		  },
+		 #{ 
+		    id=> game_board,
+		    start => {board, start_link, []}
 		  }],
     {ok, {SupFlags, ChildSpec}}.
     
