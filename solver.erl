@@ -3,9 +3,6 @@
 -export([create_subboards/2, start_link/1, stop/1]).
 -export([init/1, code_change/3, handle_call/3, handle_cast/2, handle_info/2, terminate/2]).
 
-
--define(VALID_SET, [1,2,3,4,5,6,7,8,9]).
-
 %% Public API
 start_link(Name) ->
     gen_server:start_link({local, Name}, ?MODULE, {}, []).
