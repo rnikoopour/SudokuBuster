@@ -1,6 +1,8 @@
 -module(solver).
--compile(export_all).
 -behaviour(gen_server).
+-export([create_subboards/2, start_link/1, stop/1]).
+-export([init/1, code_change/3, handle_call/3, handle_cast/2, handle_info/2, terminate/2]).
+
 
 -define(VALID_SET, [1,2,3,4,5,6,7,8,9]).
 
@@ -11,8 +13,8 @@ start_link(Name) ->
 stop(Pid) ->
     gen_server:call(Pid, terminate).
 
-msg(Pid, Msg) ->
-    gen_server:call(Pid, {msg, Msg}).
+create_subboards(Pid, Board) ->
+    gen_server:cast(Pid, {gen_subboards, Board}).
 
 %% gen_server interface
 init(State) ->
@@ -21,10 +23,13 @@ init(State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
+handle_call(terminate, _From, State) ->
+    {stop, normal, ok, State};
 handle_call(_Msg, _From, State) ->
     {reply, _Msg, State}.
 
-handle_cast(_Msg, State) ->
+handle_cast({gen_subboards, Board}, State) ->
+    gen_subboards(Board),
     {noreply, State}.
 
 handle_info(Msg, State) ->
@@ -35,19 +40,31 @@ terminate(normal, _) ->
     ok.
 
 %% Private
+gen_subboards(Board) ->
+    FlatBoard = flatten_board(Board),
+    UsedNums = lists:foldl(fun(Num, Acc) -> 
+				   add_used_num(Num, Acc) 
+			   end, [], FlatBoard),
+    UnusedPerms = generate_unused_perms(UsedNums),
+    SubBoards = lists:foldl(fun(UnusedNums, Boards) ->
+			Boards ++ [fill_subboard(UnusedNums, FlatBoard)]
+		end, [], UnusedPerms),
+    gen_event:notify(game_events, {subboard_solved, SubBoards}).
+
+
 flatten_board([Row1, Row2, Row3]) ->
     Row1 ++ Row2 ++ Row3.
 
-flatten_sort_board(Board) ->
-    lists:sort(flatten_board(Board)).
+%% flatten_sort_board(Board) ->
+%%     lists:sort(flatten_board(Board)).
 
-is_valid_board(Board) ->
-    is_valid(flatten_board(Board)).
+%% is_valid_board(Board) ->
+%%     is_valid(flatten_board(Board)).
 
-is_valid(?VALID_SET) ->
-    true;
-is_valid(_List) ->
-    false.
+%% is_valid(?VALID_SET) ->
+%%     true;
+%% is_valid(_List) ->
+%%     false.
 
 add_used_num(Num, Used) when is_integer(Num) ->
     Used ++ [Num];
@@ -64,16 +81,6 @@ perms(L)  -> [[H|T] || H <- L, T <- perms(L--[H])].
 generate_unused_perms(UsedNums) ->
     UnusedNums = ?VALID_SET -- UsedNums,
     perms(UnusedNums).
-
-gen_subboards(Board) ->
-    FlatBoard = flatten_board(Board),
-    UsedNums = lists:foldl(fun(Num, Acc) -> 
-				   add_used_num(Num, Acc) 
-			   end, [], FlatBoard),
-    UnusedPerms = generate_unused_perms(UsedNums),
-    lists:foldl(fun(UnusedNums, Boards) ->
-			Boards ++ [fill_subboard(UnusedNums, FlatBoard)]
-		      end, [], UnusedPerms).
 
 find_unknown(FlatBoard) ->
     find_unknown_index(FlatBoard, 0).
