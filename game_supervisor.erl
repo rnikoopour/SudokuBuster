@@ -8,7 +8,7 @@ start_link(Name) ->
 
 
 init(_) ->
-    SupFlags = #{strategy => one_for_all, intensity => 5, period => 30},
+    SupFlags = #{strategy => one_for_one, intensity => 5, period => 30},
     ChildSpec = [#{
 		    id => game_events,
 		    start => {gen_event, start_link, [{local, game_events}]}

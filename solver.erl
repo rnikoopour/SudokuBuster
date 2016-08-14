@@ -1,40 +1,8 @@
 -module(solver).
--behaviour(gen_server).
--export([create_subboards/2, start_link/1, stop/1]).
--export([init/1, code_change/3, handle_call/3, handle_cast/2, handle_info/2, terminate/2]).
+-export([gen_subboards/1]).
+-define(VALID_SET, [1,2,3,4,5,6,7,8,9]).
+-compile(export_all).
 
-%% Public API
-start_link(Name) ->
-    gen_server:start_link({local, Name}, ?MODULE, {}, []).
-
-stop(Pid) ->
-    gen_server:call(Pid, terminate).
-
-create_subboards(Pid, Board) ->
-    gen_server:cast(Pid, {gen_subboards, Board}).
-
-%% gen_server interface
-init(State) ->
-    {ok, State}.
-
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
-
-handle_call(terminate, _From, State) ->
-    {stop, normal, ok, State};
-handle_call(_Msg, _From, State) ->
-    {reply, _Msg, State}.
-
-handle_cast({gen_subboards, Board}, State) ->
-    gen_subboards(Board),
-    {noreply, State}.
-
-handle_info(Msg, State) ->
-    io:format("Not Expected: ~p~n", [Msg]),
-    {noreply, State}.
-
-terminate(normal, _) ->
-    ok.
 
 %% Private
 gen_subboards(Board) ->
@@ -43,10 +11,9 @@ gen_subboards(Board) ->
 				   add_used_num(Num, Acc) 
 			   end, [], FlatBoard),
     UnusedPerms = generate_unused_perms(UsedNums),
-    SubBoards = lists:foldl(fun(UnusedNums, Boards) ->
+    lists:foldl(fun(UnusedNums, Boards) ->
 			Boards ++ [fill_subboard(UnusedNums, FlatBoard)]
-		end, [], UnusedPerms),
-    gen_event:notify(game_events, {subboard_solved, SubBoards}).
+		end, [], UnusedPerms).
 
 
 flatten_board([Row1, Row2, Row3]) ->
