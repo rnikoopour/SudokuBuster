@@ -5,10 +5,9 @@
 init([]) ->
     {ok, []}.
 
-handle_event({subboard_solved, Boards}, State) ->
-    lists:foreach(fun(Board) ->
-			  io:format('~p~n', [Board])
-		  end, Boards),
+handle_event({answer, Board}, State) ->
+    io:format("Answer: ~n", []),
+    io:format('~p~n', [Board]),
     {ok, State};
 
 handle_event(Event, State) ->
