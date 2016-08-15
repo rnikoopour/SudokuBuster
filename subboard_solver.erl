@@ -1,4 +1,4 @@
--module(solver).
+-module(subboard_solver).
 -export([gen_subboards/1]).
 -define(VALID_SET, [1,2,3,4,5,6,7,8,9]).
 
