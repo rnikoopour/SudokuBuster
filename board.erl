@@ -71,11 +71,12 @@ solve(Board) ->
 				    end, Board),
     io:format("Got subboards~n"),
     io:format("Generating Boards~n"),
+    io:format("Solving...~n"),
     lists:foreach(fun(TlSubboard) ->
 			  {ok, Pid} = board_solver:start_link([[TlSubboard]|Rest]),
 			  board_solver:solve(Pid)
-		  end, TlSubboards),
-    io:format("Solving...").
+		  end, TlSubboards).
+
 
 
 
